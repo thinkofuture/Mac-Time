@@ -58,15 +58,24 @@ final class SessionStore {
     }
 
     func fetchSessions(for date: Date, completion: @escaping ([Session]) -> Void) {
+        let dayStart = Calendar.current.startOfDay(for: date)
+        guard let dayEnd = Calendar.current.date(byAdding: .day, value: 1, to: dayStart) else {
+            completion([])
+            return
+        }
+
+        fetchSessions(from: dayStart, to: dayEnd, completion: completion)
+    }
+
+    func fetchSessions(from lowerBound: Date, to upperBound: Date, completion: @escaping ([Session]) -> Void) {
         queue.async {
-            let dayStart = Calendar.current.startOfDay(for: date)
-            guard let dayEnd = Calendar.current.date(byAdding: .day, value: 1, to: dayStart) else {
+            guard lowerBound < upperBound else {
                 completion([])
                 return
             }
 
-            let lower = dayStart.timeIntervalSince1970
-            let upper = dayEnd.timeIntervalSince1970
+            let lower = lowerBound.timeIntervalSince1970
+            let upper = upperBound.timeIntervalSince1970
 
             let query = self.sessions
                 .filter(self.endAt > lower && self.startAt < upper)
@@ -165,4 +174,5 @@ private extension SessionStore {
         try db.run(sessions.createIndex(startAt, ifNotExists: true))
         try db.run(sessions.createIndex(bundleId, ifNotExists: true))
     }
+
 }

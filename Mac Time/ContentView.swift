@@ -1,10 +1,18 @@
 import SwiftUI
 import Combine
 
+private enum MainTab: Hashable {
+    case timeline
+    case data
+    case stats
+}
+
 struct ContentView: View {
     @ObservedObject var viewModel: TimelineViewModel
 
     @State private var hourHeight: Double = 120
+    @State private var selectedTab: MainTab = .timeline
+    @State private var selectedUsagePeriod: UsageStatsPeriod = .day
     private var minuteHeight: Double { hourHeight / 60 }
 
     var body: some View {
@@ -13,11 +21,12 @@ struct ContentView: View {
                 .padding()
                 .zIndex(1)
 
-            TabView {
+            TabView(selection: $selectedTab) {
                 timelineView
                     .tabItem {
                         Label("Timeline", systemImage: "clock")
                     }
+                    .tag(MainTab.timeline)
 
                 SessionListView(
                     sessions: viewModel.sessions,
@@ -31,6 +40,16 @@ struct ContentView: View {
                     .tabItem {
                         Label("Data", systemImage: "tablecells")
                     }
+                    .tag(MainTab.data)
+
+                UsageStatsView(
+                    viewModel: viewModel,
+                    selectedPeriod: $selectedUsagePeriod
+                )
+                    .tabItem {
+                        Label("Stats", systemImage: "chart.bar.xaxis")
+                    }
+                    .tag(MainTab.stats)
             }
         }
         .frame(minWidth: 600, minHeight: 700)
@@ -49,7 +68,7 @@ struct ContentView: View {
                     // Time Grid Layer
                     timeGrid
                         .frame(maxWidth: .infinity)
-                    
+
                     // Activity Layer
                     activityLayer
 
@@ -111,7 +130,7 @@ struct ContentView: View {
         HStack(spacing: 12) {
             // 导航按钮
             HStack(spacing: 2) {
-                Button(action: { viewModel.moveDate(by: -1) }) {
+                Button(action: { moveSelectedDate(by: -1) }) {
                     Image(systemName: "chevron.left")
                         .frame(width: 30, height: 30)
                         .contentShape(Rectangle())
@@ -127,7 +146,7 @@ struct ContentView: View {
                 .buttonStyle(.plain)
                 .help("Today")
 
-                Button(action: { viewModel.moveDate(by: 1) }) {
+                Button(action: { moveSelectedDate(by: 1) }) {
                     Image(systemName: "chevron.right")
                         .frame(width: 30, height: 30)
                         .contentShape(Rectangle())
@@ -138,40 +157,42 @@ struct ContentView: View {
             .foregroundColor(.secondary)
 
             // 日期显示
-            Text(dateFormatter.string(from: viewModel.selectedDate))
+            Text(headerTitle)
                 .font(.system(size: 24, weight: .medium))
 
             Spacer()
             
             // 缩放按钮
-            HStack(spacing: 12) {
-                Button(action: {
-                    withAnimation {
-                        hourHeight = max(hourHeight * 0.8, 20)
+            if selectedTab != .stats {
+                HStack(spacing: 12) {
+                    Button(action: {
+                        withAnimation {
+                            hourHeight = max(hourHeight * 0.8, 20)
+                        }
+                    }) {
+                        Image(systemName: "minus")
+                            .font(.title2)
+                            .frame(width: 30, height: 30)
+                            .contentShape(Rectangle())
                     }
-                }) {
-                    Image(systemName: "minus")
-                        .font(.title2)
-                        .frame(width: 30, height: 30)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .help("Zoom Out")
-                
-                Button(action: {
-                    withAnimation {
-                        hourHeight = min(hourHeight * 1.2, 300)
+                    .buttonStyle(.plain)
+                    .help("Zoom Out")
+
+                    Button(action: {
+                        withAnimation {
+                            hourHeight = min(hourHeight * 1.2, 300)
+                        }
+                    }) {
+                        Image(systemName: "plus")
+                            .font(.title2)
+                            .frame(width: 30, height: 30)
+                            .contentShape(Rectangle())
                     }
-                }) {
-                    Image(systemName: "plus")
-                        .font(.title2)
-                        .frame(width: 30, height: 30)
-                        .contentShape(Rectangle())
+                    .buttonStyle(.plain)
+                    .help("Zoom In")
                 }
-                .buttonStyle(.plain)
-                .help("Zoom In")
+                .foregroundColor(.secondary)
             }
-            .foregroundColor(.secondary)
         }
     }
 
@@ -266,13 +287,103 @@ struct ContentView: View {
         let minutes = date.timeIntervalSince(startOfDay) / 60
         return minutes * minuteHeight
     }
-    
+
+    private var headerTitle: String {
+        guard selectedTab == .stats else {
+            return dateFormatter.string(from: viewModel.selectedDate)
+        }
+
+        return usagePeriodTitle(
+            for: selectedUsagePeriod,
+            containing: viewModel.selectedDate
+        )
+    }
+
+    private func moveSelectedDate(by value: Int) {
+        if selectedTab == .stats {
+            let component = selectedUsagePeriod.navigationComponent
+            if let newDate = Calendar.current.date(byAdding: component, value: value, to: viewModel.selectedDate) {
+                viewModel.changeDate(newDate)
+            }
+        } else {
+            viewModel.moveDate(by: value)
+        }
+    }
+
+    private func usagePeriodTitle(
+        for period: UsageStatsPeriod,
+        containing date: Date
+    ) -> String {
+        let calendar = Calendar.current
+        let interval = TimelineViewModel.dateInterval(for: period, containing: date)
+        let currentYear = calendar.component(.year, from: Date())
+
+        switch period {
+        case .day:
+            return formatDay(interval.start, omittingYear: isInCurrentYear(interval.start, currentYear: currentYear))
+        case .month:
+            return fullMonthFormatter.string(from: interval.start)
+        case .year:
+            return yearFormatter.string(from: interval.start)
+        }
+    }
+
+    private func isInCurrentYear(_ date: Date, currentYear: Int) -> Bool {
+        Calendar.current.component(.year, from: date) == currentYear
+    }
+
+    private func formatDay(_ date: Date, omittingYear: Bool) -> String {
+        let formatter = omittingYear ? monthDayFormatter : fullDateFormatter
+        return formatter.string(from: date)
+    }
+
     private let dateFormatter: DateFormatter = {
         let f = DateFormatter()
         f.locale = Locale(identifier: "zh_CN")
         f.dateFormat = "yyyy年M月d日" // E.g. 2025年11月23日
         return f
     }()
+
+    private let fullDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.dateFormat = "yyyy年M月d日"
+        return formatter
+    }()
+
+    private let monthDayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.dateFormat = "M月d日"
+        return formatter
+    }()
+
+    private let fullMonthFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.dateFormat = "yyyy年M月"
+        return formatter
+    }()
+
+    private let yearFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.dateFormat = "yyyy年"
+        return formatter
+    }()
+}
+
+private extension UsageStatsPeriod {
+    var navigationComponent: Calendar.Component {
+        switch self {
+        case .day:
+            return .day
+        case .month:
+            return .month
+        case .year:
+            return .year
+        }
+    }
 }
 
 struct ActivityBlockView: View {

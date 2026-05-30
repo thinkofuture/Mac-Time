@@ -40,3 +40,30 @@ struct SessionBlock: Identifiable {
         return appName
     }
 }
+
+enum UsageStatsPeriod: String, CaseIterable, Identifiable {
+    case day
+    case month
+    case year
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .day:
+            return "日"
+        case .month:
+            return "月"
+        case .year:
+            return "年"
+        }
+    }
+}
+
+struct AppUsageStat: Identifiable, Equatable {
+    let bundleId: String
+    let appName: String
+    let duration: TimeInterval
+
+    var id: String { bundleId }
+}

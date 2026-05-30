@@ -115,6 +115,20 @@ final class TimelineViewModel: ObservableObject {
             end: newEnd
         )
     }
+
+    func fetchUsageStats(
+        for period: UsageStatsPeriod,
+        completion: @escaping ([AppUsageStat]) -> Void
+    ) {
+        let range = Self.dateInterval(for: period, containing: selectedDate)
+
+        sessionStore.fetchSessions(from: range.start, to: range.end) { sessions in
+            let stats = Self.usageStats(from: sessions, in: range)
+            DispatchQueue.main.async {
+                completion(stats)
+            }
+        }
+    }
     
     func updateColor(for bundleId: String, color: Color) {
         persistColor(for: bundleId, color: color)
@@ -264,6 +278,70 @@ final class TimelineViewModel: ObservableObject {
         }
         
         return blocks.filter { $0.duration >= minimumDuration }
+    }
+
+    nonisolated static func dateInterval(
+        for period: UsageStatsPeriod,
+        containing date: Date,
+        calendar: Calendar = .current
+    ) -> DateInterval {
+        if let interval = calendar.dateInterval(of: period.calendarComponent, for: date) {
+            return interval
+        }
+
+        let start = calendar.startOfDay(for: date)
+        let end = calendar.date(byAdding: period.calendarComponent, value: 1, to: start)
+            ?? start.addingTimeInterval(24 * 60 * 60)
+        return DateInterval(start: start, end: end)
+    }
+
+    nonisolated static func usageStats(
+        from sessions: [Session],
+        in range: DateInterval
+    ) -> [AppUsageStat] {
+        var totals: [String: (appName: String, duration: TimeInterval)] = [:]
+
+        for session in sessions {
+            let start = max(session.startAt, range.start)
+            let end = min(session.endAt, range.end)
+            let clippedDuration = end.timeIntervalSince(start)
+
+            guard clippedDuration > 0 else { continue }
+
+            let existing = totals[session.bundleId]
+            totals[session.bundleId] = (
+                appName: existing?.appName ?? session.appName,
+                duration: (existing?.duration ?? 0) + clippedDuration
+            )
+        }
+
+        return totals
+            .map { bundleId, value in
+                AppUsageStat(
+                    bundleId: bundleId,
+                    appName: value.appName,
+                    duration: value.duration
+                )
+            }
+            .sorted {
+                if $0.duration == $1.duration {
+                    return $0.appName.localizedCaseInsensitiveCompare($1.appName) == .orderedAscending
+                }
+                return $0.duration > $1.duration
+            }
+    }
+}
+
+private extension UsageStatsPeriod {
+    var calendarComponent: Calendar.Component {
+        switch self {
+        case .day:
+            return .day
+        case .month:
+            return .month
+        case .year:
+            return .year
+        }
     }
 }
 

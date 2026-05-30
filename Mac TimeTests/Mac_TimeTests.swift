@@ -50,6 +50,58 @@ struct Mac_TimeTests {
         #expect(blocks.first?.bundleId == "com.example.editor")
     }
 
+    @Test func usageStatsClipsSessionsToRange() {
+        let range = DateInterval(
+            start: Date(timeIntervalSince1970: 1_700_000_000),
+            end: Date(timeIntervalSince1970: 1_700_003_600)
+        )
+        let sessions = [
+            makeSession(
+                id: 1,
+                bundle: "com.example.editor",
+                appName: "Editor",
+                start: range.start.addingTimeInterval(-600),
+                duration: 1_200
+            ),
+            makeSession(
+                id: 2,
+                bundle: "com.example.editor",
+                appName: "Editor",
+                start: range.end.addingTimeInterval(-300),
+                duration: 900
+            ),
+            makeSession(
+                id: 3,
+                bundle: "com.example.chat",
+                appName: "Chat",
+                start: range.start.addingTimeInterval(-1_200),
+                duration: 300
+            )
+        ]
+
+        let stats = TimelineViewModel.usageStats(from: sessions, in: range)
+
+        #expect(stats.count == 1)
+        #expect(stats.first?.bundleId == "com.example.editor")
+        #expect(stats.first?.duration == 900)
+    }
+
+    @Test func usageStatsSortsByDurationDescending() {
+        let base = Date(timeIntervalSince1970: 1_700_000_000)
+        let range = DateInterval(start: base, end: base.addingTimeInterval(3_600))
+        let sessions = [
+            makeSession(id: 1, bundle: "com.example.chat", appName: "Chat", start: base, duration: 600),
+            makeSession(id: 2, bundle: "com.example.editor", appName: "Editor", start: base, duration: 1_200)
+        ]
+
+        let stats = TimelineViewModel.usageStats(from: sessions, in: range)
+
+        #expect(stats.map(\.bundleId) == [
+            "com.example.editor",
+            "com.example.chat"
+        ])
+    }
+
     private func makeSession(
         id: Int64,
         bundle: String,
