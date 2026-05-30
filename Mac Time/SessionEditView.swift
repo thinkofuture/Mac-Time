@@ -21,24 +21,24 @@ struct SessionEditView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            Text("Edit Session")
+            Text(L10n.Sessions.editTitle)
                 .font(.headline)
 
             Form {
-                TextField("App Name", text: $appName)
-                TextField("Bundle ID", text: $bundleId)
-                DatePicker("Start Time", selection: $start)
-                DatePicker("End Time", selection: $end)
+                TextField(L10n.Sessions.appName, text: $appName)
+                TextField(L10n.Sessions.bundleID, text: $bundleId)
+                DatePicker(L10n.Sessions.startTime, selection: $start)
+                DatePicker(L10n.Sessions.endTime, selection: $end)
             }
             .padding()
 
             HStack {
-                Button("Cancel") {
+                Button(L10n.Sessions.cancel) {
                     presentationMode.wrappedValue.dismiss()
                 }
                 .keyboardShortcut(.cancelAction)
 
-                Button("Save") {
+                Button(L10n.Sessions.save) {
                     onSave(appName, bundleId, start, end)
                     presentationMode.wrappedValue.dismiss()
                 }

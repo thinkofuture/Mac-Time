@@ -24,9 +24,18 @@ struct ContentView: View {
             TabView(selection: $selectedTab) {
                 timelineView
                     .tabItem {
-                        Label("Timeline", systemImage: "clock")
+                        Label(L10n.Tab.timeline, systemImage: "clock")
                     }
                     .tag(MainTab.timeline)
+
+                UsageStatsView(
+                    viewModel: viewModel,
+                    selectedPeriod: $selectedUsagePeriod
+                )
+                    .tabItem {
+                        Label(L10n.Tab.stats, systemImage: "chart.bar.xaxis")
+                    }
+                    .tag(MainTab.stats)
 
                 SessionListView(
                     sessions: viewModel.sessions,
@@ -38,18 +47,9 @@ struct ContentView: View {
                     }
                 )
                     .tabItem {
-                        Label("Data", systemImage: "tablecells")
+                        Label(L10n.Tab.data, systemImage: "tablecells")
                     }
                     .tag(MainTab.data)
-
-                UsageStatsView(
-                    viewModel: viewModel,
-                    selectedPeriod: $selectedUsagePeriod
-                )
-                    .tabItem {
-                        Label("Stats", systemImage: "chart.bar.xaxis")
-                    }
-                    .tag(MainTab.stats)
             }
         }
         .frame(minWidth: 600, minHeight: 700)
@@ -144,7 +144,7 @@ struct ContentView: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .help("Today")
+                .help(L10n.Toolbar.today)
 
                 Button(action: { moveSelectedDate(by: 1) }) {
                     Image(systemName: "chevron.right")
@@ -163,7 +163,7 @@ struct ContentView: View {
             Spacer()
             
             // 缩放按钮
-            if selectedTab != .stats {
+            if selectedTab == .timeline {
                 HStack(spacing: 12) {
                     Button(action: {
                         withAnimation {
@@ -176,7 +176,7 @@ struct ContentView: View {
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .help("Zoom Out")
+                    .help(L10n.Toolbar.zoomOut)
 
                     Button(action: {
                         withAnimation {
@@ -189,7 +189,7 @@ struct ContentView: View {
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .help("Zoom In")
+                    .help(L10n.Toolbar.zoomIn)
                 }
                 .foregroundColor(.secondary)
             }
@@ -339,36 +339,36 @@ struct ContentView: View {
 
     private let dateFormatter: DateFormatter = {
         let f = DateFormatter()
-        f.locale = Locale(identifier: "zh_CN")
-        f.dateFormat = "yyyy年M月d日" // E.g. 2025年11月23日
+        f.locale = .autoupdatingCurrent
+        f.setLocalizedDateFormatFromTemplate("yMMMd")
         return f
     }()
 
     private let fullDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "yyyy年M月d日"
+        formatter.locale = .autoupdatingCurrent
+        formatter.setLocalizedDateFormatFromTemplate("yMMMd")
         return formatter
     }()
 
     private let monthDayFormatter: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "M月d日"
+        formatter.locale = .autoupdatingCurrent
+        formatter.setLocalizedDateFormatFromTemplate("MMMd")
         return formatter
     }()
 
     private let fullMonthFormatter: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "yyyy年M月"
+        formatter.locale = .autoupdatingCurrent
+        formatter.setLocalizedDateFormatFromTemplate("yMMMM")
         return formatter
     }()
 
     private let yearFormatter: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "yyyy年"
+        formatter.locale = .autoupdatingCurrent
+        formatter.setLocalizedDateFormatFromTemplate("y")
         return formatter
     }()
 }

@@ -10,25 +10,25 @@ struct SessionListView: View {
 
     var body: some View {
         Table(sessions) {
-            TableColumn("App", value: \.appName)
-            TableColumn("Bundle ID", value: \.bundleId)
-            TableColumn("Start") { session in
+            TableColumn(L10n.Sessions.app, value: \.appName)
+            TableColumn(L10n.Sessions.bundleID, value: \.bundleId)
+            TableColumn(L10n.Sessions.start) { session in
                 Text(session.startAt, formatter: timeFormatter)
             }
-            TableColumn("End") { session in
+            TableColumn(L10n.Sessions.end) { session in
                 Text(session.endAt, formatter: timeFormatter)
             }
-            TableColumn("Duration") { session in
+            TableColumn(L10n.Sessions.duration) { session in
                 Text(formattedDuration(session.duration))
             }
         }
         .contextMenu(forSelectionType: Session.ID.self) { selectedIds in
             // Handle multiple selection if needed, but for now simple
             if let id = selectedIds.first, let session = sessions.first(where: { $0.id == id }) {
-                Button("Edit") {
+                Button(L10n.Sessions.edit) {
                     editingSession = session
                 }
-                Button("Delete") {
+                Button(L10n.Sessions.delete) {
                     onDelete(session)
                 }
             }
@@ -53,4 +53,3 @@ struct SessionListView: View {
         return f
     }()
 }
-

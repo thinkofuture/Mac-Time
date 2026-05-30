@@ -51,11 +51,11 @@ enum UsageStatsPeriod: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .day:
-            return "日"
+            return L10n.UsagePeriod.day
         case .month:
-            return "月"
+            return L10n.UsagePeriod.month
         case .year:
-            return "年"
+            return L10n.UsagePeriod.year
         }
     }
 }

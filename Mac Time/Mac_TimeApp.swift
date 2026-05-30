@@ -59,7 +59,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         
         if event.type == .rightMouseUp {
             let menu = NSMenu()
-            menu.addItem(NSMenuItem(title: "Quit Mac Time", action: #selector(quitApp), keyEquivalent: "q"))
+            menu.addItem(NSMenuItem(title: L10n.App.quit, action: #selector(quitApp), keyEquivalent: "q"))
             statusItem?.menu = menu
             statusItem?.button?.performClick(nil)
             statusItem?.menu = nil

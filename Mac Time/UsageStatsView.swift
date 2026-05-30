@@ -19,7 +19,7 @@ struct UsageStatsView: View {
 
             if stats.isEmpty {
                 ContentUnavailableView(
-                    "暂无使用统计",
+                    L10n.Stats.empty,
                     systemImage: "chart.bar.xaxis"
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -160,14 +160,14 @@ private func durationString(_ duration: TimeInterval) -> String {
     let minutes = totalMinutes % 60
 
     if days > 0 {
-        return String(format: "%dd %dh %02dm", days, hours, minutes)
+        return L10n.Duration.daysHoursMinutes(days: days, hours: hours, minutes: minutes)
     }
 
     if hours > 0 {
-        return String(format: "%dh %02dm", hours, minutes)
+        return L10n.Duration.hoursMinutes(hours: hours, minutes: minutes)
     }
 
-    return String(format: "%dm", minutes)
+    return L10n.Duration.minutes(minutes)
 }
 
 private func totalMinutes(_ duration: TimeInterval) -> Int {
