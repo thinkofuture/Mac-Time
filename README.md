@@ -1,6 +1,10 @@
 # Mac Time
 
+[下载最新版 App](https://github.com/thinkofuture/Mac-Time/releases/latest/download/Mac-Time.app.zip) · [查看 Releases](https://github.com/thinkofuture/Mac-Time/releases)
+
 Mac Time 是一个 macOS 菜单栏时间记录工具，用来追踪当前正在使用的前台 App，并把一天的使用记录显示成时间线。
+
+> 下载链接会指向 GitHub 最新 Release 中名为 `Mac-Time.app.zip` 的资源文件。下载后解压，并将 `Mac Time.app` 拖入“应用程序”文件夹即可使用。
 
 ## 功能
 
@@ -53,4 +57,3 @@ Mac Time 只在本机记录前台 App 的名称、bundle identifier、开始时�
 ## 许可证
 
 本项目使用 MIT License。详见 [LICENSE](LICENSE)。
-
