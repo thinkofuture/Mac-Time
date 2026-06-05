@@ -21,7 +21,6 @@ final class SessionStore {
     private let durationSec = Expression<Double>("duration_sec")
     private let createdAt = Expression<Double>("created_at")
     private let updatedAt = Expression<Double>("updated_at")
-
     private let queue = DispatchQueue(label: "com.mactime.sessionstore")
 
     init() {
@@ -103,6 +102,66 @@ final class SessionStore {
         }
     }
 
+    func fetchKnownApps(completion: @escaping ([KnownApp]) -> Void) {
+        queue.async {
+            let query = self.sessions
+                .select(self.bundleId, self.appName)
+                .order(self.appName.asc)
+
+            var appsByBundleId: [String: KnownApp] = [:]
+
+            do {
+                for row in try self.db.prepare(query) {
+                    let bundleId = row[self.bundleId]
+                    guard appsByBundleId[bundleId] == nil else {
+                        continue
+                    }
+
+                    appsByBundleId[bundleId] = KnownApp(
+                        bundleId: bundleId,
+                        appName: row[self.appName]
+                    )
+                }
+
+                let apps = appsByBundleId.values.sorted {
+                    $0.appName.localizedCaseInsensitiveCompare($1.appName) == .orderedAscending
+                }
+                completion(apps)
+            } catch {
+                print("Failed to fetch known apps: \(error)")
+                completion([])
+            }
+        }
+    }
+
+    func fetchKnownAppsWithMonthlyDuration(completion: @escaping ([KnownApp]) -> Void) {
+        queue.async {
+            let oneMonthAgo = Calendar.current.date(byAdding: .month, value: -1, to: Date())!
+            let timestamp = oneMonthAgo.timeIntervalSince1970
+
+            do {
+                let query = self.sessions
+                    .select(self.bundleId, self.appName, self.durationSec.sum)
+                    .filter(self.endAt > timestamp)
+                    .group(self.bundleId)
+                    .order(self.durationSec.sum.desc)
+
+                var apps: [KnownApp] = []
+                for row in try self.db.prepare(query) {
+                    apps.append(KnownApp(
+                        bundleId: row[self.bundleId],
+                        appName: row[self.appName],
+                        totalDuration: row[self.durationSec.sum] ?? 0
+                    ))
+                }
+                completion(apps)
+            } catch {
+                print("Failed to fetch apps with monthly duration: \(error)")
+                completion([])
+            }
+        }
+    }
+
     func deleteSession(id: Int64) {
         queue.async {
             let target = self.sessions.filter(self.id == id)
@@ -136,7 +195,6 @@ final class SessionStore {
             }
         }
     }
-
     // MARK: - Private helpers
     
     private func notifyUpdate() {

@@ -43,7 +43,7 @@ final class ActivityTracker {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.endCurrentSession()
+            self?.endCurrentSession(publishInactive: true)
         })
 
         observers.append(center.addObserver(
@@ -59,7 +59,7 @@ final class ActivityTracker {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.endCurrentSession()
+            self?.endCurrentSession(publishInactive: true)
         })
 
         observers.append(center.addObserver(
@@ -77,7 +77,7 @@ final class ActivityTracker {
     func stop() {
         pollTimer?.invalidate()
         pollTimer = nil
-        endCurrentSession()
+        endCurrentSession(publishInactive: true)
         let center = NSWorkspace.shared.notificationCenter
         observers.forEach { center.removeObserver($0) }
         observers.removeAll()
@@ -97,19 +97,19 @@ final class ActivityTracker {
     private func handleAppSwitch(to app: NSRunningApplication?) {
         guard let app,
               let identity = resolveActivityIdentity(for: app) else {
-            endCurrentSession()
+            endCurrentSession(publishInactive: true)
             return
         }
 
         if ignoredBundleIds.contains(identity.bundleId) || identity.bundleId == Bundle.main.bundleIdentifier {
-            endCurrentSession()
+            endCurrentSession(publishInactive: true)
             return
         }
 
         // End previous session if needed.
         if let currentBundle = currentAppBundleId,
            currentBundle != identity.bundleId {
-            endCurrentSession()
+            endCurrentSession(publishInactive: false)
         }
 
         // Start new if none active.
@@ -122,9 +122,26 @@ final class ActivityTracker {
             currentAppName = identity.appName
             currentWindowTitle = identity.windowTitle
         }
+
+        publishActivity(
+            bundleId: identity.bundleId,
+            appName: identity.appName,
+            windowTitle: identity.windowTitle
+        )
     }
 
-    private func endCurrentSession() {
+    private func endCurrentSession(publishInactive: Bool = false) {
+        defer {
+            sessionStart = nil
+            currentAppBundleId = nil
+            currentAppName = nil
+            currentWindowTitle = nil
+
+            if publishInactive {
+                publishActivity(bundleId: nil, appName: nil, windowTitle: nil)
+            }
+        }
+
         guard let start = sessionStart,
               let bundleId = currentAppBundleId,
               let appName = currentAppName else { return }
@@ -141,10 +158,18 @@ final class ActivityTracker {
                 )
             }
         }
-        sessionStart = nil
-        currentAppBundleId = nil
-        currentAppName = nil
-        currentWindowTitle = nil
+    }
+
+    private func publishActivity(bundleId: String?, appName: String?, windowTitle: String?) {
+        NotificationCenter.default.post(
+            name: .activityDidUpdate,
+            object: ActivityEvent(
+                bundleId: bundleId,
+                appName: appName,
+                windowTitle: windowTitle,
+                happenedAt: Date()
+            )
+        )
     }
 
     private func startPolling() {

@@ -3,6 +3,100 @@ import Testing
 @testable import Mac_Time
 
 struct Mac_TimeTests {
+    @Test func pomodoroKeepsShortInterruptionsButDoesNotCountThem() {
+        let base = Date(timeIntervalSince1970: 1_700_000_000)
+        var engine = PomodoroEngine(settings: makePomodoroSettings())
+
+        engine.handleActivity(makeActivity(bundle: "com.example.editor", appName: "Editor", at: base))
+        _ = engine.tick(at: base.addingTimeInterval(600))
+        engine.handleActivity(makeActivity(bundle: "com.example.chat", appName: "Chat", at: base.addingTimeInterval(600)))
+        _ = engine.tick(at: base.addingTimeInterval(840))
+        engine.handleActivity(makeActivity(bundle: "com.example.editor", appName: "Editor", at: base.addingTimeInterval(840)))
+        _ = engine.tick(at: base.addingTimeInterval(1_200))
+
+        #expect(engine.state.accumulatedWorkDuration == 960)
+        #expect(engine.state.isWorking)
+    }
+
+    @Test func pomodoroResetsAfterLongInterruption() {
+        let base = Date(timeIntervalSince1970: 1_700_000_000)
+        var engine = PomodoroEngine(settings: makePomodoroSettings())
+
+        engine.handleActivity(makeActivity(bundle: "com.example.editor", appName: "Editor", at: base))
+        _ = engine.tick(at: base.addingTimeInterval(600))
+        engine.handleActivity(makeActivity(bundle: "com.example.chat", appName: "Chat", at: base.addingTimeInterval(600)))
+        _ = engine.tick(at: base.addingTimeInterval(901))
+
+        #expect(engine.state.accumulatedWorkDuration == 0)
+        #expect(!engine.state.isWorking)
+    }
+
+    @Test func pomodoroCountsSwitchesBetweenWorkAppsAsContinuous() {
+        let base = Date(timeIntervalSince1970: 1_700_000_000)
+        var settings = makePomodoroSettings()
+        settings.workApps.append(PomodoroWorkApp(bundleId: "com.example.terminal", appName: "Terminal"))
+        var engine = PomodoroEngine(settings: settings)
+
+        engine.handleActivity(makeActivity(bundle: "com.example.editor", appName: "Editor", at: base))
+        _ = engine.tick(at: base.addingTimeInterval(100))
+        engine.handleActivity(makeActivity(bundle: "com.example.terminal", appName: "Terminal", at: base.addingTimeInterval(100)))
+        _ = engine.tick(at: base.addingTimeInterval(200))
+
+        #expect(engine.state.accumulatedWorkDuration == 200)
+        #expect(engine.state.currentWorkAppBundleId == "com.example.terminal")
+    }
+
+    @Test func pomodoroReminderThresholdUsesConfiguredInterval() {
+        let base = Date(timeIntervalSince1970: 1_700_000_000)
+        var settings = makePomodoroSettings()
+        settings.durationMinutes = 1
+        settings.reminderIntervalMinutes = 2
+        var engine = PomodoroEngine(settings: settings)
+
+        engine.handleActivity(makeActivity(bundle: "com.example.editor", appName: "Editor", at: base))
+
+        let firstReminder = engine.tick(at: base.addingTimeInterval(60))
+        let secondReminder = engine.tick(at: base.addingTimeInterval(180))
+
+        #expect(firstReminder == 1)
+        #expect(secondReminder == 3)
+    }
+
+    @Test func pomodoroStopsCountingWhenCurrentAppIsRemovedFromSettings() {
+        let base = Date(timeIntervalSince1970: 1_700_000_000)
+        var settings = makePomodoroSettings()
+        var engine = PomodoroEngine(settings: settings)
+
+        engine.handleActivity(makeActivity(bundle: "com.example.editor", appName: "Editor", at: base))
+        _ = engine.tick(at: base.addingTimeInterval(120))
+
+        settings.workApps = [
+            PomodoroWorkApp(bundleId: "com.example.terminal", appName: "Terminal")
+        ]
+        engine.updateSettings(settings, at: base.addingTimeInterval(120))
+        _ = engine.tick(at: base.addingTimeInterval(180))
+
+        #expect(engine.state.accumulatedWorkDuration == 120)
+        #expect(!engine.state.isWorking)
+    }
+
+    @Test func pomodoroDiscardResetsAccumulatedDurationAndState() {
+        let base = Date(timeIntervalSince1970: 1_700_000_000)
+        var engine = PomodoroEngine(settings: makePomodoroSettings())
+
+        engine.handleActivity(makeActivity(bundle: "com.example.editor", appName: "Editor", at: base))
+        _ = engine.tick(at: base.addingTimeInterval(60))
+
+        #expect(engine.state.accumulatedWorkDuration == 60)
+        #expect(engine.state.isWorking)
+
+        engine.discard()
+
+        #expect(engine.state.accumulatedWorkDuration == 0)
+        #expect(!engine.state.isWorking)
+        #expect(engine.state.currentWorkAppBundleId == nil)
+    }
+
     @Test func mergeSessionsBridgesShortInterruptions() {
         let base = Date(timeIntervalSince1970: 1_700_000_000)
         let sessions = [
@@ -117,6 +211,23 @@ struct Mac_TimeTests {
             startAt: start,
             endAt: start.addingTimeInterval(duration),
             duration: duration
+        )
+    }
+
+    private func makePomodoroSettings() -> PomodoroSettings {
+        var settings = PomodoroSettings.defaults
+        settings.workApps = [
+            PomodoroWorkApp(bundleId: "com.example.editor", appName: "Editor")
+        ]
+        return settings
+    }
+
+    private func makeActivity(bundle: String, appName: String, at date: Date) -> ActivityEvent {
+        ActivityEvent(
+            bundleId: bundle,
+            appName: appName,
+            windowTitle: nil,
+            happenedAt: date
         )
     }
 }

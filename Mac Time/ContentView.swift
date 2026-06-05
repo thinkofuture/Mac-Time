@@ -9,6 +9,7 @@ private enum MainTab: Hashable {
 
 struct ContentView: View {
     @ObservedObject var viewModel: TimelineViewModel
+    @EnvironmentObject private var appContext: AppContext
 
     @State private var hourHeight: Double = 120
     @State private var selectedTab: MainTab = .timeline
@@ -54,11 +55,8 @@ struct ContentView: View {
         }
         .frame(minWidth: 600, minHeight: 700)
     }
-
     @State private var currentTime = Date()
     private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
-
-    
 
     // MARK: - 主时间轴区域
     private var timelineView: some View {
@@ -195,6 +193,7 @@ struct ContentView: View {
             }
         }
     }
+
 
     // MARK: - 时间网格
     private var timeGrid: some View {
@@ -603,6 +602,7 @@ struct ColorPickerPopView: View {
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView(viewModel: .preview)
+            .environmentObject(AppContext(store: SessionStore()))
             .preferredColorScheme(.dark)
     }
 }

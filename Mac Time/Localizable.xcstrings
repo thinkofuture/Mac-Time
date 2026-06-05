@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "" : {
+
+    },
     "app.quit" : {
       "comment" : "Menu item for quitting the app.",
       "localizations" : {
@@ -65,6 +68,261 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$lld分"
+          }
+        }
+      }
+    },
+    "pomodoro.duration" : {
+      "comment" : "Label for the pomodoro duration setting.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smart Pomodoro Duration"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "智能番茄时长"
+          }
+        }
+      }
+    },
+    "pomodoro.enabled" : {
+      "comment" : "Toggle label for enabling pomodoro reminders.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable Smart Pomodoro"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用智能番茄钟"
+          }
+        }
+      }
+    },
+    "pomodoro.enabled.description" : {
+      "comment" : "Description for enabling smart pomodoro.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When enabled, focus time will be accumulated intelligently based on your active work apps, rather than a fixed countdown."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开启后将根据您在工作应用中的前台活动智能累计专注时间，而非固定死板的倒计时"
+          }
+        }
+      }
+    },
+    "pomodoro.action.discard" : {
+      "comment" : "Menu item to discard the current pomodoro.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discard Pomodoro"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "舍弃番茄"
+          }
+        }
+      }
+    },
+    "pomodoro.interruption_grace" : {
+      "comment" : "Label for the interruption grace period setting.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interruption Grace"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中断容忍时长"
+          }
+        }
+      }
+    },
+    "pomodoro.minutes_value" : {
+      "comment" : "Stepper value showing a number of minutes. Parameter is minutes.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld min"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld 分钟"
+          }
+        }
+      }
+    },
+    "pomodoro.no_known_apps" : {
+      "comment" : "Empty state title when no historical apps are available.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Historical Apps"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂无历史应用"
+          }
+        }
+      }
+    },
+    "pomodoro.notification.body" : {
+      "comment" : "Pomodoro reminder notification body. Parameter is worked minutes.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You have worked continuously for %1$lld minutes. Time for a break 👀"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你已经连续工作 %1$lld 分钟，该休息啦 👀"
+          }
+        }
+      }
+    },
+    "pomodoro.reminder_interval" : {
+      "comment" : "Label for the repeated reminder interval setting.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeat Reminder Interval"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "持续提醒间隔"
+          }
+        }
+      }
+    },
+    "pomodoro.settings.menu" : {
+      "comment" : "Status bar context menu item for opening pomodoro settings.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置..."
+          }
+        }
+      }
+    },
+    "pomodoro.settings.title" : {
+      "comment" : "Title for the pomodoro settings window.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置"
+          }
+        }
+      }
+    },
+    "pomodoro.show_status_bar_work_time" : {
+      "comment" : "Toggle label for showing continuous work time in the status bar.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Work Time in Status Bar"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示状态栏工作时长"
+          }
+        }
+      }
+    },
+    "pomodoro.work_app_count" : {
+      "comment" : "Count of selected work apps. Parameter is app count.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld apps"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld 个"
+          }
+        }
+      }
+    },
+    "pomodoro.work_apps" : {
+      "comment" : "Section title for work apps in pomodoro settings.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Work Apps"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "工作应用"
+          }
+        }
+      }
+    },
+    "pomodoro.work_apps.description" : {
+      "comment" : "Description under work apps navigation in settings.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only active usage of the selected apps below will trigger the focus timer, avoiding unrelated distractions."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅在您聚焦使用以下选中的工作应用时才会开始累计专注时长，避开无关干扰"
           }
         }
       }
