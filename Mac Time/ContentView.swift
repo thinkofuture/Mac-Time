@@ -392,7 +392,6 @@ struct ActivityBlockView: View {
     @ObservedObject var viewModel: TimelineViewModel
     
     @State private var showTooltip = false
-    @State private var showColorPicker = false
     @State private var hoverWorkItem: DispatchWorkItem?
 
     var body: some View {
@@ -431,14 +430,26 @@ struct ActivityBlockView: View {
             .frame(height: blockHeight)
             .padding(.leading, 10)
             .contentShape(Rectangle()) // Make the whole area tappable
-            .onTapGesture {
-                showColorPicker = true
-            }
-            .popover(isPresented: $showColorPicker) {
-                 ColorPickerPopView(selectedColor: block.color ?? .gray) { newColor in
-                     viewModel.updateColor(for: block.bundleId, color: newColor)
-                     showColorPicker = false
-                 }
+            .contextMenu {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 28))], spacing: 10) {
+                    ForEach(TimelineViewModel.palette, id: \.self) { color in
+                        Button {
+                            viewModel.updateColor(for: block.bundleId, color: color)
+                        } label: {
+                            Circle()
+                                .fill(color)
+                                .frame(width: 24, height: 24)
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.white, lineWidth: (block.color ?? .gray) == color ? 2 : 0)
+                                )
+                                .shadow(radius: 1)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .frame(width: 180)
+                .padding(8)
             }
             .zIndex(10)
             
@@ -569,34 +580,6 @@ struct ActivitySegmentView: View {
         return "\(title)\n\(startStr) - \(endStr) (\(durationStr))"
     }
 }
-
-struct ColorPickerPopView: View {
-    let selectedColor: Color
-    let onSelect: (Color) -> Void
-    
-    let colors: [Color] = TimelineViewModel.palette
-    
-    var body: some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 30))], spacing: 12) {
-            ForEach(colors, id: \.self) { color in
-                Circle()
-                    .fill(color)
-                    .frame(width: 30, height: 30)
-                    .overlay(
-                        Circle()
-                            .stroke(Color.white, lineWidth: selectedColor == color ? 2 : 0)
-                    )
-                    .shadow(radius: 2)
-                    .onTapGesture {
-                        onSelect(color)
-                    }
-            }
-        }
-        .padding()
-        .frame(width: 240)
-    }
-}
-
 
 #if DEBUG
 struct ContentView_Previews: PreviewProvider {
