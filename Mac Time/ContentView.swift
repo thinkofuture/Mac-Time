@@ -66,6 +66,12 @@ struct ContentView: View {
                     // Time Grid Layer
                     timeGrid
                         .frame(maxWidth: .infinity)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                viewModel.highlightedBundleId = nil
+                            }
+                        }
 
                     // Activity Layer
                     activityLayer
@@ -415,12 +421,22 @@ struct ActivityBlockView: View {
                         
                         // Resolve color for this specific segment
                         let segmentColor = viewModel.getColor(for: segment.bundleId) ?? .gray
-                        
+
                         ActivitySegmentView(
                             segment: segment,
                             color: segmentColor,
                             width: geo.size.width,
-                            height: segmentHeight
+                            height: segmentHeight,
+                            isDimmed: viewModel.highlightedBundleId != nil && viewModel.highlightedBundleId != segment.bundleId,
+                            onTap: {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    if viewModel.highlightedBundleId == segment.bundleId {
+                                        viewModel.highlightedBundleId = nil
+                                    } else {
+                                        viewModel.highlightedBundleId = segment.bundleId
+                                    }
+                                }
+                            }
                         )
                         .position(x: geo.size.width / 2, y: segmentY + segmentHeight / 2)
                     }
@@ -490,6 +506,11 @@ struct ActivityBlockView: View {
                         .stroke(Color(.separatorColor), lineWidth: 0.5)
                 )
                 .padding(.trailing, 20)
+                .opacity(
+                    viewModel.highlightedBundleId != nil && viewModel.highlightedBundleId != block.bundleId
+                        ? 0.15
+                        : 1
+                )
             } else {
                 Spacer()
             }
@@ -520,14 +541,21 @@ struct ActivitySegmentView: View {
     let color: Color
     let width: Double
     let height: Double
-    
+    var isDimmed: Bool = false
+    var onTap: () -> Void = {}
+
     @State private var showTooltip = false
     @State private var hoverWorkItem: DispatchWorkItem?
-    
+
     var body: some View {
         RoundedRectangle(cornerRadius: 0)
             .fill(color)
+            .opacity(isDimmed ? 0.15 : 1)
             .frame(width: width, height: height)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                onTap()
+            }
             .onHover { hovering in
                 hoverWorkItem?.cancel()
                 

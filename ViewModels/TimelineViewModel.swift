@@ -5,6 +5,7 @@ import AppKit
 
 final class TimelineViewModel: ObservableObject {
     @Published var selectedDate: Date
+    @Published var highlightedBundleId: String?
     @Published private(set) var sessions: [Session]
     @Published private(set) var mergedBlocks: [SessionBlock]
 
